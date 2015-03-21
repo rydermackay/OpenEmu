@@ -154,15 +154,22 @@
         [[NSApplication sharedApplication] terminate:nil];
     }
     CGLRetainContext(_glContext);
-
-    CGLContextObj cgl_ctx = _glContext;
-
-    // Ensure our context is set for clients not able to use CGL Macros.
-    CGLSetCurrentContext(cgl_ctx);
     
-    const GLubyte *vendor = glGetString(GL_VENDOR);
-    const GLubyte *renderer = glGetString(GL_RENDERER);
-    _hasSlowClientStorage = strstr((const char*)vendor, "Intel") || strstr((const char*)renderer, "NVIDIA GeForce 9600M GT OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce 8600M GT OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce GT 330M OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce 320M OpenGL Engine") != NULL;
+    // Ensure our context is set for clients not able to use CGL Macros.
+    CGLSetCurrentContext(_glContext);
+    
+    // Some GPUs block for long periods of time when we upload a client storage texture.
+    // It doesn't seem related to non-native pixel formats (eg SNES9X) vs native (most others).
+    // Not sure why it happens.
+    // Try turning off Vsync (since this context doesn't draw to screen) and turning on multithreading
+    // so that glFinish()es will not block the real game core.
+    long swapInterval = 0;
+    CGLSetParameter(_glContext, kCGLCPSwapInterval, &swapInterval);
+    CGLEnable(_glContext, kCGLCEMPEngine);
+    
+    //const GLubyte *vendor = glGetString(GL_VENDOR);
+    //const GLubyte *renderer = glGetString(GL_RENDERER);
+    //_hasSlowClientStorage = strstr((const char*)vendor, "Intel") || strstr((const char*)renderer, "NVIDIA GeForce 9600M GT OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce 8600M GT OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce GT 330M OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce 320M OpenGL Engine") != NULL;
 }
 
 - (void)setupIOSurface
