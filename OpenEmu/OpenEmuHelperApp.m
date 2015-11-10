@@ -145,7 +145,7 @@
 {
     OEIntRect screenRect = _gameCore.screenRect;
 
-    _previousAspectSize = _gameCore.aspectSize;
+    _previousAspectSize = [self aspectSize];
     _previousScreenSize = screenRect.size;
 
     if(_previousScreenSize.width == 0)
@@ -383,7 +383,8 @@
 
 - (OEIntSize)aspectSize
 {
-    return [_gameCore aspectSize];
+    BOOL shouldDisableAspectCorrection = [[[NSUserDefaults alloc] initWithSuiteName:@"org.openemu.OpenEmu"] boolForKey:@"disableAspectCorrection"];
+    return shouldDisableAspectCorrection ? _gameCore.screenRect.size : _gameCore.aspectSize;
 }
 
 - (BOOL)isEmulationPaused
@@ -532,7 +533,7 @@
 
     OEIntSize bufferSize = _gameCore.bufferSize;
     OEIntRect screenRect = _gameCore.screenRect;
-    OEIntSize aspectSize = _gameCore.aspectSize;
+    OEIntSize aspectSize = [self aspectSize];
 
     if (!OEIntSizeEqualToSize(previousBufferSize, bufferSize)) {
         // The IOSurface is going to be recreated at the next frame.
